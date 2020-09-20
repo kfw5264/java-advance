@@ -4,6 +4,10 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 创建线程的几种方法
+ * @author kangfawei
+ */
 public class ThreadDemo01 {
     public static void main(String[] args) {
         new MyThread01().start();

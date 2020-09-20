@@ -2,6 +2,10 @@ package com.kangfawei.item01;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * synchronized锁
+ * @author kangfawei
+ */
 public class ThreadDemo03 {
     public static void main(String[] args) {
         SyncDemo syncDemo = new SyncDemo();

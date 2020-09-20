@@ -1,5 +1,11 @@
 package com.kangfawei.item01;
 
+/**
+ * Thread.sleep(Long millis)
+ * Thread.yield()
+ * Thread.join()
+ * @author kangfawei
+ */
 public class ThreadDemo02 {
     public static void main(String[] args) {
         Thread thread = new Thread(new MyThread(), "MyThread");
