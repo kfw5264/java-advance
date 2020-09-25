@@ -132,10 +132,91 @@
 
 #### 三、 JUC包的一些类
 
-1. `ReentrantLock`：
-2. `CountDownLatch`：
-3. `CyclicBarrier`:
-4. `Phaser`:
-5. `ReadWriteLock`:
-6. `Semaphore`:
-7. `Exchanger`:
+##### `ReentrantLock`
+
+可重入锁，同`synchronized`一样，同一个线程可以多次获取同一把锁。
+
+```java
+package com.kangfawei.item02;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class ReentrantLockDemo {
+    public static void main(String[] args) throws InterruptedException {
+        ReentrantLockInstance instance = new ReentrantLockInstance();
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < 10000; i++) {
+            threads.add(new Thread(instance :: increase));
+        }
+
+        for (Thread thread : threads) {
+            thread.start();
+        }
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        System.out.println(instance.count);
+    }
+}
+
+class ReentrantLockInstance {
+    Integer count = 0;
+    ReentrantLock lock = new ReentrantLock();
+    public void increase () {
+        for (int i = 0; i < 1000; i++) {
+            try {
+                lock.lock();
+                count++;
+            } finally {
+                lock.unlock();
+            }
+        }
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+```
+
+**注意：**synchronized是Java语言层面提供的锁，所以不需要考虑异常。而`ReentrantLock`是Java代码实现的锁，所以需要考虑产生异常的情况，所以应该在finally中释放锁。
+
+`ReentrantLock`可以尝试获取锁，如果获取不到可以转而做其他的事：
+
+```java
+try {
+    if(lock.tryLock(1, TimeUnit.SECONDS)) {
+        try {
+            count2 ++;
+            TimeUnit.MILLISECONDS.sleep(200);
+            System.out.println(Thread.currentThread().getName() + "--" + count2);
+            System.out.println("===============================");
+        } finally {
+            lock.unlock();
+        }
+    } else {
+        System.out.println(Thread.currentThread().getName() + "没有获取到锁......");
+    }
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+
+
+##### `CountDownLatch`
+
+##### `CyclicBarrier`
+
+##### `Phaser`
+
+##### `ReadWriteLock`
+
+##### `Semaphore`
+
+##### `Exchanger`
