@@ -134,80 +134,152 @@
 
 ##### `ReentrantLock`
 
-可重入锁，同`synchronized`一样，同一个线程可以多次获取同一把锁。
+- 可重入锁，同`synchronized`一样，同一个线程可以多次获取同一把锁。
 
-```java
-package com.kangfawei.item02;
+  ```java
+  public class ReentrantLockDemo {
+      public static void main(String[] args) throws InterruptedException {
+          ReentrantLockInstance instance = new ReentrantLockInstance();
+          List<Thread> threads = new ArrayList<>();
+          for (int i = 0; i < 10000; i++) {
+              threads.add(new Thread(instance :: increase));
+          }
+  
+          for (Thread thread : threads) {
+              thread.start();
+          }
+          for (Thread thread : threads) {
+              thread.join();
+          }
+  
+          System.out.println(instance.count);
+      }
+  }
+  
+  class ReentrantLockInstance {
+      Integer count = 0;
+      ReentrantLock lock = new ReentrantLock();
+      public void increase () {
+          for (int i = 0; i < 1000; i++) {
+              try {
+                  lock.lock();
+                  count++;
+              } finally {
+                  lock.unlock();
+              }
+          }
+          try {
+              Thread.sleep(100);
+          } catch (InterruptedException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  
+  ```
+  
+  **注意：**synchronized是Java语言层面提供的锁，所以不需要考虑异常。而`ReentrantLock`是Java代码实现的锁，所以需要考虑产生异常的情况，所以应该在finally中释放锁。
+  
+- `ReentrantLock`可以尝试获取锁，如果获取不到可以转而做其他的事：
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
+  ```java
+  try {
+      if(lock.tryLock(1, TimeUnit.SECONDS)) {
+          try {
+              count2 ++;
+              TimeUnit.MILLISECONDS.sleep(200);
+              System.out.println(Thread.currentThread().getName() + "--" + count2);
+              System.out.println("===============================");
+          } finally {
+              lock.unlock();
+          }
+      } else {
+          System.out.println(Thread.currentThread().getName() + "没有获取到锁......");
+      }
+  } catch (InterruptedException e) {
+      e.printStackTrace();
+  }
+  ```
 
-public class ReentrantLockDemo {
-    public static void main(String[] args) throws InterruptedException {
-        ReentrantLockInstance instance = new ReentrantLockInstance();
-        List<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
-            threads.add(new Thread(instance :: increase));
-        }
+  
 
-        for (Thread thread : threads) {
-            thread.start();
-        }
-        for (Thread thread : threads) {
-            thread.join();
-        }
+- `ReentrantLock`可以选择公平锁跟非公平锁，而`synchronized`只能是非公平锁
 
-        System.out.println(instance.count);
-    }
-}
+  ```
+  public ReentrantLock() {
+      sync = new NonfairSync();
+  }
+  
+  public ReentrantLock(boolean fair) {
+      sync = fair ? new FairSync() : new NonfairSync();
+  }
+  
+  ```
 
-class ReentrantLockInstance {
-    Integer count = 0;
-    ReentrantLock lock = new ReentrantLock();
-    public void increase () {
-        for (int i = 0; i < 1000; i++) {
-            try {
-                lock.lock();
-                count++;
-            } finally {
-                lock.unlock();
-            }
-        }
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-}
+  公平锁是多个线程申请同一把锁时，必须按照申请时间来依次获得锁，而非公平锁则是谁抢到锁归谁。
 
-```
+  `ReentrantLock`默认情况下为非公平锁，可以通过构造方法传入一个`true`设置为公平锁。
 
-**注意：**synchronized是Java语言层面提供的锁，所以不需要考虑异常。而`ReentrantLock`是Java代码实现的锁，所以需要考虑产生异常的情况，所以应该在finally中释放锁。
+  正常情况下，非公平锁的效率要高于公平锁。
 
-`ReentrantLock`可以尝试获取锁，如果获取不到可以转而做其他的事：
+- 使用`synchronized`获取锁的时，除非获取到锁，否则将会一直等待下去。使用`ReentrantLock`实现锁时，可以使用`lockInterruptibly()`方法 响应中断的获取锁。
 
-```java
-try {
-    if(lock.tryLock(1, TimeUnit.SECONDS)) {
-        try {
-            count2 ++;
-            TimeUnit.MILLISECONDS.sleep(200);
-            System.out.println(Thread.currentThread().getName() + "--" + count2);
-            System.out.println("===============================");
-        } finally {
-            lock.unlock();
-        }
-    } else {
-        System.out.println(Thread.currentThread().getName() + "没有获取到锁......");
-    }
-} catch (InterruptedException e) {
-    e.printStackTrace();
-}
-```
+  ```java
+  public class ReentrantLockInterrupt {
+      public static void main(String[] args) {
+          Lock lock1 = new ReentrantLock();
+          Lock lock2 = new ReentrantLock();
+  
+          Thread t1 = new Thread(() -> {
+              try {
+                  lock1.lock();
+                  System.out.println(Thread.currentThread().getName() + "获取到lock1");
+                  TimeUnit.SECONDS.sleep(1);
+                  lock2.lockInterruptibly();
+                  System.out.println(Thread.currentThread().getName() + "获取到lock2");
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              } finally {
+                  lock1.unlock();
+                  System.out.println(Thread.currentThread().getName() + "解锁lock1");
+                  lock2.unlock();
+                  System.out.println(Thread.currentThread().getName() + "解锁lock2");
+              }
+          }, "t1");
+  
+          Thread t2 = new Thread(() -> {
+              try {
+                  lock2.lock();
+                  System.out.println(Thread.currentThread().getName() + "获取到lock2");
+                  TimeUnit.SECONDS.sleep(1);
+                  lock1.lockInterruptibly();
+                  System.out.println(Thread.currentThread().getName() + "获取到lock1");
+              } catch (InterruptedException e) {
+                  e.printStackTrace();
+              } finally {
+                  lock2.unlock();
+                  System.out.println(Thread.currentThread().getName() + "解锁lock2");
+                  lock1.unlock();
+                  System.out.println(Thread.currentThread().getName() + "解锁lock1");
+              }
+          }, "t2");
+  
+          t1.start();
+          t2.start();
+  
+          try {
+              TimeUnit.SECONDS.sleep(1);
+          } catch (InterruptedException e) {
+              e.printStackTrace();
+          }
+  
+          t1.interrupt();
+      }
+  }
+  
+  ```
 
-
+  
 
 ##### `CountDownLatch`
 
