@@ -1,5 +1,7 @@
 package com.kangfawei.item02;
 
+import com.kangfawei.utils.JUCUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -41,11 +43,12 @@ class ReentrantLockInstance {
                 lock.unlock();
             }
         }
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(100);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        JUCUtil.sleep(TimeUnit.MILLISECONDS, 100);
     }
 
     public void tryLockDemo() {

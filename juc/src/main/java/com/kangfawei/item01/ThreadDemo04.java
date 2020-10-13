@@ -1,5 +1,7 @@
 package com.kangfawei.item01;
 
+import com.kangfawei.utils.JUCUtil;
+
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -12,11 +14,12 @@ public class ThreadDemo04 {
         VolatileTest test = new VolatileTest();
         Thread thread = new Thread(test, "T1");
         thread.start();
-        try {
-            TimeUnit.SECONDS.sleep(2);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            TimeUnit.SECONDS.sleep(2);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        JUCUtil.sleep(TimeUnit.SECONDS, 2);
 
         test.flag = false;
     }

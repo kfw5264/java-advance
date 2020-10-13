@@ -1,5 +1,7 @@
 package com.kangfawei.item01;
 
+import com.kangfawei.utils.JUCUtil;
+
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -20,11 +22,12 @@ class MyThread01 extends Thread {
     @Override
     public void run() {
         for (int i = 0; i < 10; i++) {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TimeUnit.SECONDS.sleep(1);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            JUCUtil.sleep(TimeUnit.SECONDS, 1);
             System.out.println(Thread.currentThread().getName() + "--" + i);
         }
     }
@@ -34,11 +37,12 @@ class MyThread02 implements Runnable {
     @Override
     public void run() {
         for (int i = 0; i < 10; i++) {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TimeUnit.SECONDS.sleep(1);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            JUCUtil.sleep(TimeUnit.SECONDS, 1);
             System.out.println(Thread.currentThread().getName() + "--" + i);
         }
     }
@@ -64,11 +68,12 @@ class MyThread03{
         @Override
         public void run() {
             System.out.println(Thread.currentThread().getName());
-            try {
-                TimeUnit.MILLISECONDS.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                TimeUnit.MILLISECONDS.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            JUCUtil.sleep(TimeUnit.MILLISECONDS, 1000);
         }
     }
 }

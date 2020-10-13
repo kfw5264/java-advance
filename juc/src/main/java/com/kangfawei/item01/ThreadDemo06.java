@@ -1,5 +1,8 @@
 package com.kangfawei.item01;
 
+import com.kangfawei.utils.JUCUtil;
+
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -13,11 +16,12 @@ public class ThreadDemo06 {
             // lambda表达式
             new Thread(demo :: increaseCount).start();
         }
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        JUCUtil.sleep(TimeUnit.MILLISECONDS, 5000);
         System.out.println(demo.count);
     }
 }

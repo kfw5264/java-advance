@@ -279,9 +279,10 @@
   
   ```
 
-  
 
 ##### `CountDownLatch`
+
+> `CountDownLatch`相当与门闩的作用，相当于等门口聚集一定数量的人开门放行。
 
 ##### `CyclicBarrier`
 
