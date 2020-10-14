@@ -282,7 +282,76 @@
 
 ##### `CountDownLatch`
 
-> `CountDownLatch`相当与门闩的作用，相当于等门口聚集一定数量的人开门放行。
+`CountDownLatch`相当与门闩的作用，相当于等门口聚集一定数量的人开门放行。
+
+- `CountDownLatch`主要方法：
+
+  1. `countDown()`：顾名思义，这个方法是一个计数器，每次执行计数器减1，计数器的值到0的时候放行。（同一个线程可以多次执行，每次执行计数器减1）
+  2. `await()`：该方法使得线程进入等待状态，等待计数器为0时放行。（多个线程可以同时执行，如果同时执行，哪个这几个线程进入等待状态， 并且以共享的形式享有同一把锁。）
+
+  ```java
+  public class CountDownLatchDemo {
+      public static void main(String[] args) {
+          CountDownLatch latch = new CountDownLatch(100000);
+          MyThread myThread = new MyThread(latch);
+  
+          for (int i = 0; i < 100000; i++) {
+              new Thread(myThread::serviceWithLatch, "Thread" + i).start();
+          }
+  
+          try {
+              System.out.println("main await");
+              latch.await();
+              System.out.println("main finally");
+              System.out.println("Latch--" + myThread.count);
+          } catch (InterruptedException e) {
+              e.printStackTrace();
+          }
+  
+          MyThread myThread2 = new MyThread(latch);
+          for (int i = 0; i < 100000; i++) {
+              new Thread(myThread2::serviceNoLatch, "Thread" + i).start();
+          }
+          System.out.println("NoLatch--" + myThread2.count);
+      }
+  }
+  
+  class MyThread {
+      private final CountDownLatch latch;
+      public int count;
+  
+      public MyThread (CountDownLatch latch) {
+          this.latch = latch;
+      }
+  
+      public void serviceWithLatch() {
+          try {
+              synchronized (this) {
+                  count++;
+              }
+          } finally {
+              latch.countDown();
+          }
+      }
+  
+      public void serviceNoLatch() {
+          synchronized (this) {
+              count++;
+          }
+      }
+  }
+  
+  
+  /*
+   *output:
+   *  main await
+   *  main finally
+   *  Latch--100000
+   *  NoLatch--99881
+   */
+  ```
+
+  
 
 ##### `CyclicBarrier`
 
