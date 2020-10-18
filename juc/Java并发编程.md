@@ -356,6 +356,47 @@
 
 > 回环屏障。一组线程执行的时候，会被堵在某一个屏障前面，当最后一个线程到达这个屏障的时候，屏障放开，所有阻塞的线程才会执行。多个线程互相等待，知道所有线程完成才继续向下执行。该屏障可以循环使用。例如：英雄联盟一场比赛开始时，先加载完成的玩家需要等待所有玩家加载完成才可以进入游戏。
 
+```java
+public class CyclicBarrierForLOL {
+    public static void main(String[] args) {
+        CyclicBarrier barrier = new CyclicBarrier(10);
+        Random random = new Random();
+
+        for (int i = 0; i < 5; i++) {
+            new Thread(() -> {
+                JUCUtil.sleep(TimeUnit.MILLISECONDS, random.nextInt(5000));
+                System.out.println("红方选手————" + Thread.currentThread().getName() + "加载完成");
+
+                try {
+                    barrier.await();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                } finally {
+                    System.out.println("红方选手————" + Thread.currentThread().getName() + "欢迎来到英雄联盟，敌军还有30s进入战场。");
+                }
+            }, "t" + i).start();
+        }
+
+        for (int i = 0; i < 5; i++) {
+            new Thread(() -> {
+                JUCUtil.sleep(TimeUnit.MILLISECONDS, random.nextInt(5000));
+                System.out.println("蓝方选手————" + Thread.currentThread().getName() + "加载完成");
+
+                try {
+                    barrier.await();
+                } catch (InterruptedException | BrokenBarrierException e) {
+                    e.printStackTrace();
+                } finally {
+                    System.out.println("蓝方选手————" + Thread.currentThread().getName() + "欢迎来到英雄联盟，敌军还有30s进入战场。");
+                }
+            }, "t" + (i +5)).start();
+        }
+    }
+}
+```
+
+
+
 ##### `Phaser`
 
 ##### `ReadWriteLock`
