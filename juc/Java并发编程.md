@@ -382,7 +382,7 @@ public class CyclicBarrierForLOL {
                 JUCUtil.sleep(TimeUnit.MILLISECONDS, random.nextInt(5000));
                 System.out.println("蓝方选手————" + Thread.currentThread().getName() + "加载完成");
 
-                try {
+                try { 
                     barrier.await();
                 } catch (InterruptedException | BrokenBarrierException e) {
                     e.printStackTrace();
@@ -397,10 +397,28 @@ public class CyclicBarrierForLOL {
 
 
 
-##### `Phaser`
+##### `Phaser` 
+
+> `Phaser`是JDK 7新增的一个同步辅助类,可以实现类似`CyclicBarrier`和`CountDownLatch`类似的功能。
+>
+> `Phaser`支持任务动态调整,支持分层结构达到更大的吞吐量。
+>
+> `Phaser`类似`CyclicBarrier`和`CountDownLatch`，通过计数器来控制程序的顺序执行。`Phaser`中计数器叫做`parties`，可以通过`Phaser`的构造函数或者`register()`方法来注册。如果要取消注册，则需要调用`arriveAndDeregister()`方法。
+
+
 
 ##### `ReadWriteLock`
 
 ##### `Semaphore`
 
 ##### `Exchanger`
+
+##### `LockSupport`
+
+
+
+##### 面试题
+
+1. 实现一个容器，提供两个方法`add()`和`size()`，写两个线程，线程以添加10个元素到容器中，线程2实现监控元素的个数，当格式到5个时，线程2给出提示并结束。
+2. 写一个固定容量的同步容器，拥有`put()`和`get()`方法，以及`getCount()`方法，能够支持两个盛传着线程以及10个消费者线程的阻塞使用。
+3. 有两个线程，一个打印1~26的数字，另外一个打印 A-Z的大写字母，实现打印效果1A2B3C......25Y26Z
