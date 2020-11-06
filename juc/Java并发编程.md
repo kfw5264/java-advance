@@ -405,6 +405,107 @@ public class CyclicBarrierForLOL {
 >
 > `Phaser`类似`CyclicBarrier`和`CountDownLatch`，通过计数器来控制程序的顺序执行。`Phaser`中计数器叫做`parties`，可以通过`Phaser`的构造函数或者`register()`方法来注册。如果要取消注册，则需要调用`arriveAndDeregister()`方法。
 
+```java
+public class PhaserDemo {
+
+    public static void main(String[] args) {
+        Phaser phaser = new MyPhaser(7);
+//        phaser.bulkRegister(7);
+        for (int i = 0; i < 5; i++) {
+            new Thread(new Person("p" + i, phaser)).start();
+        }
+        new Thread(new Person("新郎", phaser)).start();
+        new Thread(new Person("新娘", phaser)).start();
+    }
+
+    static void milliSleep(int milli) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(milli);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class MyPhaser extends Phaser {
+        protected MyPhaser(int parties) {
+            super(parties);
+        }
+
+        @Override
+        protected boolean onAdvance(int phase, int registeredParties) {
+            switch (phase) {
+                case 0:
+                    System.out.println("所有人都到齐了" + registeredParties);
+                    System.out.println("--------------------------------------------");
+                    return false;
+                case 1:
+                    System.out.println("所有人都吃完了" + registeredParties);
+                    System.out.println("--------------------------------------------");
+                    return false;
+                case 2:
+                    System.out.println("所有人都离开了" + registeredParties);
+                    System.out.println("--------------------------------------------");
+                    return false;
+                case 3:
+                    System.out.println("婚礼结束， 新郎新娘入洞房！" + registeredParties);
+                    return false;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + phase);
+            }
+        }
+    }
+
+    static class Person implements Runnable {
+        private String name;
+        private Phaser phaser;
+
+        public Person(String name, Phaser phaser) {
+            this.name = name;
+            this.phaser = phaser;
+        }
+
+        private void arrive() {
+            milliSleep(100);
+            System.out.println(name + "到达现场");
+            phaser.arriveAndAwaitAdvance();
+        }
+
+        private void eat() {
+            milliSleep(100);
+            System.out.println(name + "吃完了");
+            phaser.arriveAndAwaitAdvance();
+        }
+
+        private void leave() {
+            milliSleep(100);
+            System.out.println(name + "酒足饭饱，离开了婚礼现场！");
+            phaser.arriveAndAwaitAdvance();
+        }
+
+        private void hug() {
+            milliSleep(100);
+            if(name.equals("新郎") || name.equals("新娘")) {
+                System.out.println(name + "入洞房");
+            } else {
+                phaser.arriveAndDeregister();
+            }
+        }
+
+        @Override
+        public void run() {
+            arrive();
+            eat();
+            leave();
+            hug();
+        }
+    }
+
+
+
+}
+
+```
+
 
 
 ##### `ReadWriteLock`
@@ -422,3 +523,6 @@ public class CyclicBarrierForLOL {
 1. 实现一个容器，提供两个方法`add()`和`size()`，写两个线程，线程以添加10个元素到容器中，线程2实现监控元素的个数，当格式到5个时，线程2给出提示并结束。
 2. 写一个固定容量的同步容器，拥有`put()`和`get()`方法，以及`getCount()`方法，能够支持两个盛传着线程以及10个消费者线程的阻塞使用。
 3. 有两个线程，一个打印1~26的数字，另外一个打印 A-Z的大写字母，实现打印效果1A2B3C......25Y26Z
+
+
+
