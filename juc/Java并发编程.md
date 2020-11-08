@@ -656,6 +656,56 @@ public class ExchangerDemo {
 
 ##### `LockSupport`
 
+> `LockSupport`用来创建锁或其他同步类的基本线程阻塞原语。
+>
+> 调用`park()`方法时，当前线程阻塞，直到获得许可
+>
+> 调用`unpark()`方法时，给一个线程许可让其继续运行下去
+>
+> 如果先调用`unpark()`之后再调用`park()`方法，线程将会一直运行下去，不会等待。
+
+```java
+public class LockSupportDemo {
+
+    public static void main(String[] args) {
+        
+        Thread t1 = new Thread(() -> {
+            System.out.println("t1锁定.....");
+            LockSupport.park();
+            System.out.println("t1解锁");
+        });
+
+        // 验证先解锁再锁定线程不会等待而是直接往下进行
+        Thread t2 = new Thread(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+                System.out.println("t2锁定");
+                LockSupport.park();
+                System.out.println("t2已经解锁");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        Thread t3 = new Thread(() -> {
+            try {
+                LockSupport.unpark(t2);
+                System.out.println("已经解锁t2");
+                System.out.println("t3两秒后解锁t1");
+                TimeUnit.SECONDS.sleep(2);
+                LockSupport.unpark(t1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        t1.start();
+        t2.start();
+        t3.start();
+    }
+}
+```
+
 
 
 ##### 面试题
