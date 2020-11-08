@@ -620,6 +620,40 @@ public class SemaphoreDemo {
 
 ##### `Exchanger`
 
+> `Exchanger`用于两个线程之间交换数据。一个线程调用`exchange()`之后会等待另外一个线程调用`exchange()`方法。
+
+```java
+public class ExchangerDemo {
+    public static void main(String[] args) {
+        Exchanger<String> exchanger = new Exchanger<>();
+
+        new Thread(() -> {
+            String str = "This is T1's data";
+            System.out.println(Thread.currentThread().getName() + "---" + str);
+            try {
+                str = exchanger.exchange(str);
+                System.out.println(Thread.currentThread().getName() + "---" + str);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, "t1").start();
+
+        new Thread(() -> {
+            String str = "This is T2's data";
+            System.out.println(Thread.currentThread().getName() + "---" + str);
+            try {
+                str = exchanger.exchange(str);
+                System.out.println(Thread.currentThread().getName() + "---" + str);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, "t2").start();
+    }
+}
+```
+
+
+
 ##### `LockSupport`
 
 
