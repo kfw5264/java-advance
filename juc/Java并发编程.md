@@ -510,7 +510,113 @@ public class PhaserDemo {
 
 ##### `ReadWriteLock`
 
+在实际使用过程中，由于读的过程不会更改临界区的数据，所以往往可以允许多个线程同时访问。写过程由于更改临界区数据，多个线程同时访问会导致最终数据不一致。所以实际使用中，我们往往需要允许多个线程同时读，但只要有一个线程写其他线程必须等待，使用`ReadWriteLock`就可以解决这个问题。
+
+- 使用`ReadWriteLock`可以提高效率
+- `ReadWriteLock`只允许一个线程写入
+- `ReadWriteLock`允许多个线程读取
+- `ReadWriteLock`适合读多写少的场景 
+
+```java
+public class ReadWriteLockDemo {
+    public static void main(String[] args) {
+        Counter counter = new Counter();
+        for (int i = 0; i < 10; i++) {
+            new Thread(counter :: increase).start();
+        }
+        for (int i = 0; i < 100; i++) {
+            new Thread(counter :: get).start();
+        }
+
+    }
+
+
+
+    private static final class Counter {
+        private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+        private final Lock rLock = rwLock.readLock();
+        private final Lock wLock = rwLock.writeLock();
+        private int count = 0;
+
+        public void increase() {
+            wLock.lock();
+            try {
+                count++;
+                System.out.println("count增加");
+                try {
+                    TimeUnit.MILLISECONDS.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            } finally {
+                wLock.unlock();
+
+            }
+
+
+        }
+
+        public void get() {
+            rLock.lock();
+            try{
+                System.out.println(count);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } 
+            } finally {
+              rLock.unlock();
+            }
+        }
+    }
+}
+
+```
+
+
+
 ##### `Semaphore`
+
+> `Semaphore`字面意思是信号量，信号标。在Java中主要是控制同一时间对于资源的访问次数。
+>
+> `Semaphore`在构造器中传入一个`int`类型的整数，表示同一时间最多访问资源的线程。
+>
+> `acquire()`：一个线程调用该方法的时候，如果成功则信号量-1，否则需要等待有线程释放该资源
+>
+> `release()`：线程调用该方法释放资源，释放后信号量+1。释放后会唤醒一个等待的线程。
+
+```java
+/**
+ * Semaphore示例  抢车位
+ * @author kangfawei
+ */
+public class SemaphoreDemo {
+    
+    public static void main(String[] args) {
+        Semaphore semaphore = new Semaphore(3);  // 只有三个车位
+
+        for (int i = 0; i < 5; i++) {
+            new Thread(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println(Thread.currentThread().getName() + "占用一个车位");
+
+                    TimeUnit.SECONDS.sleep(2);
+
+                    System.out.println(Thread.currentThread().getName() + "离开车位，剩余车位+1");
+                    semaphore.release();
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }, "t"+i).start();
+        }
+    }
+}
+```
+
+
 
 ##### `Exchanger`
 
@@ -525,4 +631,10 @@ public class PhaserDemo {
 3. 有两个线程，一个打印1~26的数字，另外一个打印 A-Z的大写字母，实现打印效果1A2B3C......25Y26Z
 
 
+
+#### 四、 AQS(`AbstractQueuedSynchronizer`)
+
+#### 五、`ThreadLocal`
+
+#### 六、不同引用类型（强软弱虚）在垃圾回收时的表现
 
