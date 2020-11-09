@@ -711,7 +711,12 @@ public class LockSupportDemo {
 ##### 面试题
 
 1. 实现一个容器，提供两个方法`add()`和`size()`，写两个线程，线程以添加10个元素到容器中，线程2实现监控元素的个数，当格式到5个时，线程2给出提示并结束。
-2. 写一个固定容量的同步容器，拥有`put()`和`get()`方法，以及`getCount()`方法，能够支持两个盛传着线程以及10个消费者线程的阻塞使用。
+   - 使用`wait()` 和`notify()`实现，详见`com.kangfawei.item02.Q1_waitAndNotify.java`
+   - 使用`CountDownLatch`实现，详见`com.kangfawei.item02.Q1_countDownLatch.java`
+   - 使用`LockSupport`实现，详见`com.kangfawei.item02.Q1_LockSupport.java`
+2. 写一个固定容量的同步容器，拥有`put()`和`get()`方法，以及`getCount()`方法，能够支持两个生产者线程以及10个消费者线程的阻塞使用。
+   - 使用`wait()` 和`notify()`实现，详见`com.kangfawei.item02.Q2_waitAndNotify.java`
+   - 使用`ReentrantLock`实现，详见`com.kangfawei.item02.Q1_reentrantLock.java`
 3. 有两个线程，一个打印1~26的数字，另外一个打印 A-Z的大写字母，实现打印效果1A2B3C......25Y26Z
 
 

@@ -10,7 +10,7 @@ public class ReentrantLockConditionDemo {
 
         ProduceAndConsumer produceAndConsumer = new ProduceAndConsumer();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 2; i++) {
             int finalI = i;
             new Thread(new Runnable() {
                 @Override
@@ -22,7 +22,7 @@ public class ReentrantLockConditionDemo {
 
         }
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
