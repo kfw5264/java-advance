@@ -719,7 +719,7 @@ public class LockSupportDemo {
    - 使用`ReentrantLock`实现，详见`com.kangfawei.item02.Q1_reentrantLock.java`
 3. 有两个线程，一个打印1~26的数字，另外一个打印 A-Z的大写字母，实现打印效果1A2B3C......25Y26Z
 
-
+   - 使用`wait()`和`notify()`实现，详见`com.kangfawei.item02.Q3_waitAndNotify.java`
 
 #### 四、 AQS(`AbstractQueuedSynchronizer`)
 
