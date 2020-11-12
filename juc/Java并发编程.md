@@ -723,7 +723,11 @@ public class LockSupportDemo {
 
 #### 四、 AQS(`AbstractQueuedSynchronizer`)
 
+> AQS是一个用来构建锁和同步器的框架。
+
+<img src="images\AQS.png" alt="AQS" style="zoom:80%;" />
+
 #### 五、`ThreadLocal`
 
-#### 六、不同引用类型（强软弱虚）在垃圾回收时的表现
+#### 六、不同引用类型（强软弱虚）在垃圾回收时的表现x
 
