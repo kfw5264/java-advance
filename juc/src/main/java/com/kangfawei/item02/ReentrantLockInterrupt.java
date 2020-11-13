@@ -1,13 +1,12 @@
 package com.kangfawei.item02;
 
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ReentrantLockInterrupt {
     public static void main(String[] args) {
-        Lock lock1 = new ReentrantLock();
-        Lock lock2 = new ReentrantLock();
+        ReentrantLock lock1 = new ReentrantLock();
+        ReentrantLock lock2 = new ReentrantLock();
 
         Thread t1 = new Thread(() -> {
             try {
@@ -19,10 +18,14 @@ public class ReentrantLockInterrupt {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
-                lock1.unlock();
-                System.out.println(Thread.currentThread().getName() + "解锁lock1");
-                lock2.unlock();
-                System.out.println(Thread.currentThread().getName() + "解锁lock2");
+                if(lock1.isHeldByCurrentThread()) {
+                    lock1.unlock();
+                    System.out.println(Thread.currentThread().getName() + "解锁lock1");
+                }
+                if(lock2.isHeldByCurrentThread()) {
+                    lock2.unlock();
+                    System.out.println(Thread.currentThread().getName() + "解锁lock2");
+                }
             }
         }, "t1");
 

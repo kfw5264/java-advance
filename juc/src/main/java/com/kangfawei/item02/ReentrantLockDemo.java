@@ -60,7 +60,11 @@ class ReentrantLockInstance {
                     System.out.println(Thread.currentThread().getName() + "--" + count2);
                     System.out.println("===============================");
                 } finally {
-                    lock.unlock();
+//                    lock.unlock();
+                    // 先判读该线程是否获得锁
+                    if(lock.isHeldByCurrentThread()) {
+                        lock.unlock();
+                    }
                 }
             } else {
                 System.out.println(Thread.currentThread().getName() + "没有获取到锁......");
