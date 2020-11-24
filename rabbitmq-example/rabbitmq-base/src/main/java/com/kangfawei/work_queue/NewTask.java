@@ -13,7 +13,6 @@ import java.util.concurrent.TimeoutException;
 
 public class NewTask {
     private static final String TASK_QUEUE_NAME = "task_queue";
-
     public static void main(String[] args) {
         ConnectionFactory factory = ConnectionUtil.getFactory(RabbitMQConstant.RABBITMQ_HOST,
                 RabbitMQConstant.RABBITMQ_USERNAME,
@@ -27,7 +26,8 @@ public class NewTask {
             String message = String.join(" ", args);
             channel.basicPublish("",
                     TASK_QUEUE_NAME,
-                    MessageProperties.PERSISTENT_TEXT_PLAIN, // 保证消息持久性
+                    // 保证消息持久性
+                    MessageProperties.PERSISTENT_TEXT_PLAIN,
                     message.getBytes(StandardCharsets.UTF_8));
 
             System.out.println("发送消息" + message);

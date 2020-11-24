@@ -35,12 +35,6 @@ public class Worker {
         // 保证消费者处理完当前消息并确认前不会被再次分配一条消息。
         channel.basicQos(1);
 
-        // lambda表达式写法
-//        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-//            String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-//            System.out.println(" [x] Received '" + message + "'");
-//        };
-
         DeliverCallback deliverCallback = new DeliverCallback() {
             @Override
             public void handle(String consumerTag, Delivery delivery) throws IOException {
