@@ -25,7 +25,11 @@ public class NewTask {
 
             channel.queueDeclare(TASK_QUEUE_NAME, true, false, false, null);
             String message = String.join(" ", args);
-            channel.basicPublish("", TASK_QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes(StandardCharsets.UTF_8));
+            channel.basicPublish("",
+                    TASK_QUEUE_NAME,
+                    MessageProperties.PERSISTENT_TEXT_PLAIN, // 保证消息持久性
+                    message.getBytes(StandardCharsets.UTF_8));
+
             System.out.println("发送消息" + message);
         } catch (TimeoutException | IOException e) {
             e.printStackTrace();
