@@ -114,11 +114,67 @@
    factory.setPassword(password); // 设置连接密码，默认guest
    factory.setVirtualHost(virtualHost); // 设置虚拟主机， 默认“/”
    factory.setUri(URI);  factory.setUri(uriString);  // 根据uri连接
+   
+   // try-with-resource，不用再finally中写关闭连接的代码，在代码块执行完成之后自动关闭
+   try(Connection connection = factory.newConnection();
+      Channel channel = connection.createChannel()) {}
+   ```
+
+   *注意：在接收消息的时候因为我们需要跟服务器一直保持连接等待消息，所以不需要通过try-with-resource的方式关闭连接。*
+
+2. 消息发送
+
+   消息发送分为两步：
+
+   1. 声明一个我们消息需要发送到的队列
+
+      ```java
+      /**
+        * @param queue 队列名称
+        * @param durable 如果设置为true则该队列为一个持久的队列，rabbitmq重启的时候依然存在
+        * @param exclusive 如果为ture则说明该队列为独占的。仅限于本次连接
+        * @param autoDelete 设置为true表示该队列不再使用的时候可以自动删除
+        * @param arguments 队列的其他参数
+        */
+      Queue.DeclareOk queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete,
+                                       Map<String, Object> arguments) throws IOException;
+      
+      ```
+
+      
+
+   2. 发送消息到队列中
+
+      ```java
+      /** 
+        * @param exchange 消息发送到的交换器
+        * @param routingKey 路由键
+        * @param props 消息的其他参数
+        * @param body 消息内容
+        */
+      void basicPublish(String exchange, String routingKey, BasicProperties props, byte[] body) throws IOException;
+      ```
+
+      
+
+   *注意：发送消息必须在try-with-resource代码块中*
+
+3. 通知服务器传递消息
+
+   ```java
+   DeliverCallback deliverCallback = new DeliverCallback() {
+       @Override
+       public void handle(String consumerTag, Delivery message) throws IOException {
+           // TODO 处理消息
+           
+           channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+       }
+   }
    ```
 
    
 
-2. `RabbitMQ`消息确认  
+4. `RabbitMQ`消息确认  
 
    `RabbitMQ`会在收到确认消息之后删除队列中的消。如果消息处理很复杂，需要消耗很长时间，自动确认的情况下，一旦在数据处理中途消费者停止，会发生数据丢失的现象。手动确认可以在数据处理完之后发送一条确认消息，这时候队列再去删除消息就不会丢失数据， 在消费者停止之后，所有未确认的消息会重新发送
 
@@ -127,7 +183,7 @@
    channel.basicConsume(TASK_QUEUE_NAME, autoAck, deliverCallback, consumerTag -> { });
    ```
 
-3. 消息持久性
+5. 消息持久性
 
    如果不做任何设置，`RabbitMQ`停止或者崩溃的时候会丢失所有的队列。所以，我们需要把队列跟消息标记为持久的，这时候当`RabbitMQ`重启的时候队列依然存在。
 
@@ -145,7 +201,7 @@
    channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
    ```
 
-4. 公平派遣
+6. 公平派遣
 
    在不做特定配置的情况下，`RabbitMQ`分配任务默认是以轮询的方式分配的。如果两个消费者中有一个一直处理一些复杂的任务，而另外一个的任务则很简单，很快就可以完成。这种情况下就需要做一些配置，保证一个消费者需要同时处理多个任务。
 
@@ -156,7 +212,7 @@
 
    以上配置保证一个消费者在没有确认上一条消息的前不会被分配到另外一条消息。
 
-5. 发布/订阅模式
+7. 发布/订阅模式
 
    `RabbitMQ`的核心是生产者不会直接发送消息到队列，甚至很多时候生产者并不知道消息是否已经被发送到队列中。
 
@@ -183,7 +239,7 @@
    channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
    ```
 
-6. 临时队列(Temporary queues)
+8. 临时队列(Temporary queues)
 
    大多数情况下，我们需要给队列指定一个特定的名称以便我们在生产者跟消费者之间分享消息。但在某些情况下，比如日志管理中，我们希望了解所有的日志消息，而不是其中一个子集。而且我们只会关注当时正在进行的日志，对于旧的日志我们不需要过多的关注。这种情况下我们就需要下面一些设置：
 
