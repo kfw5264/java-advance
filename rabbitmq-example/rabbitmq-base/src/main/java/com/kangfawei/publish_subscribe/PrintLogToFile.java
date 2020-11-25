@@ -1,5 +1,6 @@
 package com.kangfawei.publish_subscribe;
 
+import com.kangfawei.common.RabbitMQConstant;
 import com.kangfawei.utils.ConnectionUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DeliverCallback;
@@ -19,7 +20,8 @@ public class PrintLogToFile {
     private static final String EXCHANGE_NAME = "logs";
     public static void main(String[] args) {
         try {
-            Channel channel = ConnectionUtil.getChannel("192.168.182.212", "kfw", "123456");
+            Channel channel = ConnectionUtil.getChannel(RabbitMQConstant.RABBITMQ_HOST,
+                    RabbitMQConstant.RABBITMQ_USERNAME, RabbitMQConstant.RABBITMQ_PASSWORD);
             channel.exchangeDeclare(EXCHANGE_NAME, "fanout");
             String queueName = channel.queueDeclare().getQueue();
             channel.queueBind(queueName, EXCHANGE_NAME, "");

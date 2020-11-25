@@ -1,5 +1,6 @@
 package com.kangfawei.publish_subscribe;
 
+import com.kangfawei.common.RabbitMQConstant;
 import com.kangfawei.utils.ConnectionUtil;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -17,7 +18,8 @@ public class LogDispatcher {
     private static final String EXCHANGE_NAME = "logs";
 
     public static void main(String[] args) {
-        ConnectionFactory factory = ConnectionUtil.getFactory("192.168.182.212", "kfw", "123456");
+        ConnectionFactory factory = ConnectionUtil.getFactory(RabbitMQConstant.RABBITMQ_HOST,
+                RabbitMQConstant.RABBITMQ_USERNAME, RabbitMQConstant.RABBITMQ_PASSWORD);
         try(Connection connection = factory.newConnection();
             Channel channel = connection.createChannel()) {
             // 声明一个交换器
