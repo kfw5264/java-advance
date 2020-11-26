@@ -104,6 +104,10 @@
 
 ##  3. Java api
 
+### `Hello World`
+
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/hello_world包下*
+
 1. 与服务器建立一个连接
 
    ```java
@@ -174,7 +178,11 @@
 
    
 
-4. `RabbitMQ`消息确认  
+### `Work Queue`
+
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/work_queue包*
+
+1. `RabbitMQ`消息确认  
 
    `RabbitMQ`会在收到确认消息之后删除队列中的消。如果消息处理很复杂，需要消耗很长时间，自动确认的情况下，一旦在数据处理中途消费者停止，会发生数据丢失的现象。手动确认可以在数据处理完之后发送一条确认消息，这时候队列再去删除消息就不会丢失数据， 在消费者停止之后，所有未确认的消息会重新发送
 
@@ -183,7 +191,7 @@
    channel.basicConsume(TASK_QUEUE_NAME, autoAck, deliverCallback, consumerTag -> { });
    ```
 
-5. 消息持久性
+2. 消息持久性
 
    如果不做任何设置，`RabbitMQ`停止或者崩溃的时候会丢失所有的队列。所以，我们需要把队列跟消息标记为持久的，这时候当`RabbitMQ`重启的时候队列依然存在。
 
@@ -201,7 +209,7 @@
    channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
    ```
 
-6. 公平派遣
+3. 公平派遣
 
    在不做特定配置的情况下，`RabbitMQ`分配任务默认是以轮询的方式分配的。如果两个消费者中有一个一直处理一些复杂的任务，而另外一个的任务则很简单，很快就可以完成。这种情况下就需要做一些配置，保证一个消费者需要同时处理多个任务。
 
@@ -212,7 +220,11 @@
 
    以上配置保证一个消费者在没有确认上一条消息的前不会被分配到另外一条消息。
 
-7. 发布/订阅模式
+### `publish/Subscribe`
+
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/publish_subscribe包*
+
+1. 发布/订阅模式
 
    `RabbitMQ`的核心是生产者不会直接发送消息到队列，甚至很多时候生产者并不知道消息是否已经被发送到队列中。
 
@@ -239,12 +251,63 @@
    channel.basicPublish(EXCHANGE_NAME, "", null, message.getBytes());
    ```
 
-8. 临时队列(Temporary queues)
+2. 临时队列(Temporary queues)
 
    大多数情况下，我们需要给队列指定一个特定的名称以便我们在生产者跟消费者之间分享消息。但在某些情况下，比如日志管理中，我们希望了解所有的日志消息，而不是其中一个子集。而且我们只会关注当时正在进行的日志，对于旧的日志我们不需要过多的关注。这种情况下我们就需要下面一些设置：
 
    - 不管我们什么时候连接到RabbitMQ，我们都需要一个新的空队列，所以我们需要创建一个随机名称的队列，最好是让服务器为我们随机分配一个队列名称。
    - 一旦我们关闭连接的时候需要自动删除该队列。
 
-   
+   在Java客户端，如果我们使用的没有参数的`queueDeclear()`方法，将会创建一个随机名称、非持久、独占的并且会自动删除的队列。
 
+   ```java
+   // 获取队列名称
+   String queueName = channel.queueDeclear().getQueue();
+   ```
+
+3. 绑定
+
+   创建扇形交换器跟队列之后需要将队列跟交换器绑定，交换器就可以发送消息到自己绑定的队列中。
+
+   ```java
+   /**
+     * @param queue 队列名称
+     * @param exchange 交换器名称
+     * @param routingKey 路由键
+     */
+   Queue.BindOk queueBind(String queue, String exchange, String routingKey) throws IOException;
+   ```
+
+### `Routing`
+
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/routing包*
+
+有时候我们的日志系统中不会订阅所有的日志，而是有选择性的根据日志的严重程度来订阅。
+
+1. 绑定
+
+   `queueBind()`方法有三个参数，如果是发布订阅模式只需要根据前两个参数进行分发就可以了。
+
+   但是如果是要根据日志级别分发的情况下我们就需要根据`routingKey`来过滤了。
+
+   ```java
+   channel.queueBind(queueName, EXCHANGE_NAME， "error");
+   ```
+
+2. 直连
+
+   `fanout`类型的交换器只会无脑的进行广播，不适合根据日志严重程度进行过滤。所以这时候我们用`direct`类型的交换器来替代。消息发送的路由键与消息绑定的路由键匹配的情况下进行消息分发。
+
+
+### `Topics`
+
+基于多个条件进行路由。在我们的日志系统中，我们可能不仅通过日志的严重性来订阅，还有可能会根据发出日志的源或者其他条件来订阅日志。
+
+1. `Topic`交换器
+
+   `Topic`类型的交换器的路由键是一组通过'.'分隔开的路由键，而不是用一个特定的来表示，通常这些路由键用来指定一些消息的特性。路由键的最大长度是255个字节。`Topic`交换器的逻辑类似于`Direct`交换器。
+
+   消息绑定的键与路由键格式一样。但是绑定键有两种特殊形式：
+
+   - `*`：可以替代一个单词。
+   - `#`：可以替代零个或者多个单词。
