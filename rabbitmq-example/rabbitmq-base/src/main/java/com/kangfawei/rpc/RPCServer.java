@@ -4,7 +4,6 @@ import com.kangfawei.common.RabbitMQConstant;
 import com.kangfawei.utils.ConnectionUtil;
 import com.rabbitmq.client.*;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -22,6 +21,7 @@ public class RPCServer {
              Channel channel = connection.createChannel()) {
 
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            // 清楚给定队列的内容
             channel.queuePurge(QUEUE_NAME);
 
             channel.basicQos(1);
@@ -29,32 +29,30 @@ public class RPCServer {
             System.out.println(" 等待远程请求......");
 
             Object monitor = new Object();
-            DeliverCallback deliverCallback = new DeliverCallback() {
-                @Override
-                public void handle(String consumerTag, Delivery delivery) throws IOException {
-                    AMQP.BasicProperties replyProps = new AMQP.BasicProperties
-                            .Builder()
-                            .correlationId(delivery.getProperties().getCorrelationId())
-                            .build();
+            DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+                AMQP.BasicProperties replyProps = new AMQP.BasicProperties
+                        .Builder()
+                        .correlationId(delivery.getProperties().getCorrelationId())
+                        .build();
 
-                    String response = "";
+                String response = "";
 
-                    String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
-                    int n = Integer.parseInt(message);
+                String message = new String(delivery.getBody(), StandardCharsets.UTF_8);
+                int n = Integer.parseInt(message);
 
-                    System.out.println(" [.] fib(" + message + ")");
-                    response += fib(n);
+                System.out.println("接收到的消息是" + message);
+                response += fib(n);
 
-                    channel.basicPublish("", delivery.getProperties().getReplyTo(), replyProps, response.getBytes("UTF-8"));
-                    channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-                    // RabbitMq consumer worker thread notifies the RPC server owner thread
-                    synchronized (monitor) {
-                        monitor.notify();
-                    }
+
+                channel.basicPublish("", delivery.getProperties().getReplyTo(), replyProps, response.getBytes(StandardCharsets.UTF_8));
+                channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                // RabbitMq consumer worker thread notifies the RPC server owner thread
+                synchronized (monitor) {
+                    monitor.notify();
                 }
             };
 
-
+            System.out.println("测试deliverCallback是否异步......");
             channel.basicConsume(QUEUE_NAME, false, deliverCallback, (consumerTag -> { }));
             // Wait and be prepared to consume the message from RPC client.
             while (true) {

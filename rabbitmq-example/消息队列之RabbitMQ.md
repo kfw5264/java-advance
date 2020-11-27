@@ -102,7 +102,7 @@
 
 
 
-##  3. Java api
+##  3. Java Example
 
 ### `Hello World`
 
@@ -311,3 +311,23 @@
 
    - `*`：可以替代一个单词。
    - `#`：可以替代零个或者多个单词。
+
+### `Remote procedure call(RPC)`
+
+**远程过程调用**。远程调用方法并且等待调用结果。
+
+1. 客户端接口
+
+2. 回调队列
+
+   ```java
+   callbackQueueName = channel.queueDeclare().getQueue();
+   BasicProperties props = new BasicProperties
+       .builder()
+       .replyTo(callbackQueueName)
+       .build();
+   
+   channel.basicPublish("", "rpc_queue", props, message.getBytes());
+   ```
+
+   
