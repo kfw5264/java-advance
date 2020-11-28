@@ -60,7 +60,9 @@ public class Worker {
 
     private static void doWork(String task) throws InterruptedException {
         for (char c : task.toCharArray()) {
-            if (c == '.') Thread.sleep(1000);
+            if (c == '.') {
+                Thread.sleep(1000);
+            }
         }
 
         Thread.sleep(5000);

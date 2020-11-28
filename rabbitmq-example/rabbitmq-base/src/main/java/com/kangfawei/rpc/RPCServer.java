@@ -21,7 +21,7 @@ public class RPCServer {
              Channel channel = connection.createChannel()) {
 
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-            // 清楚给定队列的内容
+            // 清除给定队列的内容
             channel.queuePurge(QUEUE_NAME);
 
             channel.basicQos(1);

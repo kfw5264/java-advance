@@ -316,18 +316,5 @@
 
 **远程过程调用**。远程调用方法并且等待调用结果。
 
-1. 客户端接口
+`RabbitMQ`实现远程调用其实本质就是服务器与与客户端同时是生产者和消费者
 
-2. 回调队列
-
-   ```java
-   callbackQueueName = channel.queueDeclare().getQueue();
-   BasicProperties props = new BasicProperties
-       .builder()
-       .replyTo(callbackQueueName)
-       .build();
-   
-   channel.basicPublish("", "rpc_queue", props, message.getBytes());
-   ```
-
-   
