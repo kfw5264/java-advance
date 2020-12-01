@@ -298,8 +298,9 @@
 
    `fanout`类型的交换器只会无脑的进行广播，不适合根据日志严重程度进行过滤。所以这时候我们用`direct`类型的交换器来替代。消息发送的路由键与消息绑定的路由键匹配的情况下进行消息分发。
 
-
 ### `Topics`
+
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/topics包*
 
 基于多个条件进行路由。在我们的日志系统中，我们可能不仅通过日志的严重性来订阅，还有可能会根据发出日志的源或者其他条件来订阅日志。
 
@@ -314,7 +315,68 @@
 
 ### `Remote procedure call(RPC)`
 
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/rpc包*
+
 **远程过程调用**。远程调用方法并且等待调用结果。
 
 `RabbitMQ`实现远程调用其实本质就是服务器与与客户端同时是生产者和消费者
+
+- 需要一个存放请求信息的请求队列，服务器消费这个请求队列的请求数据。
+
+- 每一个客户端需要一个队列名称唯一、排他的相应队列，否则不能保证响应被哪个客户端获取。
+
+
+
+### `Publisher Confirms`(扩展)
+
+*完整代码：rabbitmq-example/rabbitmq-base/src/main/java/com/kangfawei/publisher_confirms包*
+
+**目的：**实现可靠发布，确保发布的消息安全的到达Broker。开启**Publish Confirms**后，Broker将会异步确认客户端发布的消息，这意味着他们已经在服务端得到了处理。
+
+通过`confirmSelect()`启动。
+
+```java
+Channel channel = connection.createChannel();
+channel.confirmSelect();
+```
+
+*注意：在每个想要启动消息确认的通道都要开启，只用启动一次，而不是每个消息都启动。*
+
+1. 单独发布消息
+
+   - 优点：简单方便
+   - 缺点：效率慢，等待获取认证会阻塞其他消息的发布。
+
+   *这种方法只适合用于吞吐量不超过每秒几百的应用之中。*
+
+2. 批量发布消息
+
+   - 优点：相比单独发布可以有效提高吞吐量。
+   - 缺点：如果出现异常无法准确定位到问题所在。依然是同步确认，所以依然会阻塞消息。
+
+3. 异步确认
+
+   ```java
+   /**
+     * 添加一个确认监听器，使用lambda表达式
+     * @param ackCallback callback on ack
+     * @param nackCallback call on nack (negative ack)
+     */
+   ConfirmListener addConfirmListener(confirmCallback ackCallback, ConfirmCallback nackCallback);
+   
+   channel.addConfirmListener(
+       (sequenceNumber, multiple) -> {
+           // TODO 确认消息之后操作
+       }, 
+       (sequenceNumber, multiple) -> {
+           // TODO 丢失消息之后操作
+       }
+   )
+   ```
+
+   
+
+   
+
+
 

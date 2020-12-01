@@ -46,7 +46,7 @@ public class RPCServer {
 
                 channel.basicPublish("", delivery.getProperties().getReplyTo(), replyProps, response.getBytes(StandardCharsets.UTF_8));
                 channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
-                // RabbitMq consumer worker thread notifies the RPC server owner thread
+
                 synchronized (monitor) {
                     monitor.notify();
                 }
@@ -54,7 +54,7 @@ public class RPCServer {
 
             System.out.println("测试deliverCallback是否异步......");
             channel.basicConsume(QUEUE_NAME, false, deliverCallback, (consumerTag -> { }));
-            // Wait and be prepared to consume the message from RPC client.
+            // 在这个地方线程等待客户端发来消息
             while (true) {
                 synchronized (monitor) {
                     try {
