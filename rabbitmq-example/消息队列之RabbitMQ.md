@@ -18,7 +18,7 @@
 - `ActiveMQ`：比较老，性能较差。
 - `RocketMQ`：吸收`Kafka`优点，改进缺点，部分功能收费。
 - `RabbitMQ`：性能好，可靠性高，完全开源。
-- `Kafka`：性能好，但是可靠性低
+- `Kafka`：性能好，但是可靠性低，常用于日志收集。
 - ......
 
 ## 2. `RabbitMQ`
@@ -363,7 +363,7 @@ channel.confirmSelect();
      * @param nackCallback call on nack (negative ack)
      */
    ConfirmListener addConfirmListener(confirmCallback ackCallback, ConfirmCallback nackCallback);
-   
+   // 方法使用如下：
    channel.addConfirmListener(
        (sequenceNumber, multiple) -> {
            // TODO 确认消息之后操作
@@ -371,10 +371,31 @@ channel.confirmSelect();
        (sequenceNumber, multiple) -> {
            // TODO 丢失消息之后操作
        }
-   )
+   );
+   
    ```
 
-   
+   - **sequenceNumber：**标识已确认跟丢失消息的数字
+   - **multiple：**如果为false，表示只有一条消息被确认或者丢失，如果为true，则所有小于或者等于当前sequence number的消息都被确认或者丢失。
+
+   异步确认需要一个容器来关联`sequenceNumber`跟message。可以选择使用`ConcurrentNavigableMap`，原因：
+
+   1. Map类型的数据结构方便通过key-value的形式关联序列号跟消息。
+   2. 方便根据给定的序列号清理map中的数据，包括多条消息清理。
+   3. 支持并发。
+
+   序列号可以在消息发布之前通过`Channel`的`getNextPublishSeqNo()`方法获得。
+
+   ```java
+   int sequenceNumber = channel.getNextPublishSeqNo();
+   channel.basicPublish(exchange, queue, properties, body);
+   ```
+
+   异步确认三个步骤：
+
+   1. 提供一个关联序列号跟消息的方式。
+   2. 注册一个监听器处理确认的消息和丢失的消息。
+   3. 在发布消息前跟踪序列号。
 
    
 
